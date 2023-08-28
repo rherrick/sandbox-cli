@@ -1,18 +1,25 @@
 plugins {
-    id 'java'
+    id "groovy"
+    id "java"
 }
 
-group 'io.flywheel.sandbox'
-version '1.0-SNAPSHOT'
+group "io.flywheel.sandbox"
+version "1.0-SNAPSHOT"
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
+    implementation "org.apache.groovy:groovy-all:4.0.12"
+    implementation "info.picocli:picocli-groovy:4.7.3"
     implementation "org.apache.commons:commons-lang3:3.12.0"
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.13.3"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
+
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
 }
 
 test {

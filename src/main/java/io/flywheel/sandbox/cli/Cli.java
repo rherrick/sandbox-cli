@@ -1,45 +1,39 @@
 package io.flywheel.sandbox.cli;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class Cli {
-    private static final String translatedXMLPath = RandomStringUtils.randomAlphabetic(20);
-    private static final String comparisonType    = RandomStringUtils.randomAlphabetic(20);
-
-
-    public static void main(final String[] arguments) {
+    public static void main(final String[] arguments) throws IOException {
         final Cli cli = new Cli();
         cli.run();
     }
 
-    private void run() {
-        StopWatch    stopWatch = StopWatch.createStarted();
-        List<String> format1   = IntStream.range(0, 1000000).mapToObj(Integer::toString).map(this::formatString1).collect(Collectors.toList());
-        stopWatch.stop();
-        long format1Time = stopWatch.getTime();
-        stopWatch.reset();
-        stopWatch.start();
-        List<String> format2   = IntStream.range(0, 1000000).mapToObj(Integer::toString).map(this::formatString2).collect(Collectors.toList());
-        stopWatch.stop();
-        long format2Time = stopWatch.getTime();
-        System.out.println("       Format 1 with stream: " + format1Time + " ms");
-        System.out.println("Format 2 with String.join(): " + format2Time + " ms");
-    }
-
-    private String formatString1(String value) {
-        return " (" + Stream.of(" LOWER(", translatedXMLPath, ") ", comparisonType, " LOWER(", value, ") ").collect(Collectors.joining(" ")) + ")";
-    }
-
-    private String formatString2(String value) {
-        return " (" + String.join(" "," LOWER(", translatedXMLPath.trim(), ") ", comparisonType.trim(), " LOWER(", value, ") ") + ")";
+    private void run() throws IOException {
+        final Map<String, List<String>> tags = new HashMap<>();
+        try (final BufferedReader reader = new BufferedReader(new FileReader(new File(Paths.get("/Users/rickherrick/tags.txt").toUri())))) {
+            reader.lines().map(StringUtils::split).forEach(array -> {
+                final List<String> list = tags.computeIfAbsent(array[0], (key) -> new ArrayList<>());
+                list.add(array[1]);
+            });
+        }
+        final Map<Boolean, List<Map.Entry<String, List<String>>>> split = tags.entrySet().stream().collect(Collectors.partitioningBy(entry -> entry.getValue().size() > 1));
+        System.out.println("Found " + split.get(false).size() + " tags with only a single name");
+        final List<Map.Entry<String, List<String>>> multipleNames = split.get(true);
+        System.out.println("Found " + multipleNames.size() + " tags with one or more names:");
+        multipleNames.forEach(entry -> {
+            System.out.println(" * " + entry.getKey() + ":");
+            entry.getValue().stream().sorted().forEach(value -> System.out.println("    - " + value));
+        });
     }
 }
