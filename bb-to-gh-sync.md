@@ -16,24 +16,19 @@ Once you push the commit including `bitbucket-pipelines.yml`, that and any subse
 ## bitbucket-pipelines.yml
 
 ```
-clone:
-  depth: full
 pipelines:
   default:
     - step:
+        name: Sync GitHub Mirror
+        image: alpine/git:latest
+        clone:
+          enabled: false
         script:
-          - git checkout main
+          - git clone --bare git@bitbucket.org:rickatfw/sandbox-cli.git
+          - cd sandbox-cli.git
           - git push --mirror git@github.com:rherrick/sandbox-cli.git
-```
-
-**Note:** The `git checkout main` statement is necessary to prevent the pipeline from failing. Running the `git push` on its own actually seems to sync the repositories properly, but something goes wrong:
 
 ```
-+ git push --mirror git@github.com:YourRepo/xxx.git
-Warning: Permanently added the ECDSA host key for IP address 'a.b.c.d' to the list of known hosts.
-remote: To git@github.com:YourRepo/xxx.git
- * [new branch]      dev -> dev
- * [new branch]      origin/dev -> origin/dev
- ! [remote rejected] main (refusing to delete the current branch: refs/heads/main)
-error: failed to push some refs to 'git@github.com:YourRepo/xxx.git'
-```
+
+**Note:** Bitbucket's pipeline DSL has a `clone` feature that could be used for syncing. However, I ran into errors using the clone with `git push --mirror`. With just that, the sync would work properly, but the pipeline would fail because it tries to overwrite a branch on the downstream destination. Adding `git checkout main` eliminated the error, but would also delete any branch _other_ than `main` on the downstream. This approach is slightly clunkier but results in both a successful pipeline execution and all branches being properly mirrored on the downstream.
+
