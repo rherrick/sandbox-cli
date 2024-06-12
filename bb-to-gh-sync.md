@@ -22,5 +22,18 @@ pipelines:
   default:
     - step:
         script:
+          - git checkout main
           - git push --mirror git@github.com:rherrick/sandbox-cli.git
+```
+
+**Note:** The `git checkout main` statement is necessary to prevent the pipeline from failing. Running the `git push` on its own actually seems to sync the repositories properly, but something goes wrong:
+
+```
++ git push --mirror git@github.com:YourRepo/xxx.git
+Warning: Permanently added the ECDSA host key for IP address 'a.b.c.d' to the list of known hosts.
+remote: To git@github.com:YourRepo/xxx.git
+ * [new branch]      dev -> dev
+ * [new branch]      origin/dev -> origin/dev
+ ! [remote rejected] main (refusing to delete the current branch: refs/heads/main)
+error: failed to push some refs to 'git@github.com:YourRepo/xxx.git'
 ```
